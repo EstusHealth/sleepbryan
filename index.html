@@ -1,0 +1,1575 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sleep Brian - Internal Board Meeting</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+/* ===== RESET & BASE ===== */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { font-size: 10px; }
+body {
+  font-family: 'Press Start 2P', monospace;
+  background: #0a0a12;
+  color: #c8c8c8;
+  overflow-x: hidden;
+  min-height: 100vh;
+  image-rendering: pixelated;
+}
+
+/* ===== PIXEL PALETTE ===== */
+:root {
+  --bg-dark: #0a0a12;
+  --wall: #2a2a3a;
+  --floor: #3d3225;
+  --floor-light: #564a38;
+  --roof: #1e1e2e;
+  --border: #4a4a5a;
+  --teal: #2d8a7e;
+  --teal-dark: #1a5c53;
+  --yellow: #c8a832;
+  --yellow-dim: #8a7620;
+  --grey-light: #b0b0b0;
+  --ambitious-color: #e8a028;
+  --anxious-color: #6888c8;
+  --evening-color: #c85858;
+  --sleep-color: #2d8a7e;
+  --text-green: #48c848;
+  --panel-bg: #0c0c18;
+  --panel-border: #3a6a3a;
+}
+
+/* ===== TITLE SCREEN ===== */
+#title-screen {
+  position: fixed; inset: 0;
+  background: var(--bg-dark);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  z-index: 1000;
+  cursor: pointer;
+}
+#title-screen h1 {
+  font-size: 2.8rem;
+  color: var(--teal);
+  text-shadow: 3px 3px 0 #000;
+  margin-bottom: 1.5rem;
+  animation: title-pulse 2s ease-in-out infinite;
+}
+#title-screen h2 {
+  font-size: 1.2rem;
+  color: var(--yellow);
+  margin-bottom: 3rem;
+}
+#title-screen .blink {
+  font-size: 1rem;
+  color: var(--grey-light);
+  animation: blink 1.2s step-end infinite;
+}
+@keyframes title-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.03); }
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+/* ===== MAIN CONTAINER ===== */
+#game-container {
+  display: none;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+}
+#game-container.active { display: flex; }
+
+/* ===== ROOF ===== */
+#roof {
+  height: 40px;
+  background: var(--roof);
+  border-bottom: 4px solid var(--border);
+  position: relative;
+}
+#roof::before {
+  content: 'SLEEP BRIAN INTERNAL BOARD MEETING';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.7rem;
+  color: var(--teal);
+  white-space: nowrap;
+}
+
+/* ===== HOUSE ===== */
+#house {
+  display: flex;
+  flex: 1;
+  min-height: 340px;
+  border-bottom: 4px solid var(--border);
+  position: relative;
+}
+
+.room {
+  flex: 1;
+  min-width: 0;
+  border-right: 4px solid var(--border);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.room:last-child { border-right: none; }
+
+/* Room internals */
+.room-ceiling {
+  height: 8px;
+  background: var(--wall);
+}
+.room-body {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.room-wall {
+  flex: 1;
+  position: relative;
+}
+.room-floor {
+  height: 32px;
+  background: var(--floor);
+  border-top: 4px solid var(--floor-light);
+  position: relative;
+}
+
+/* Room labels */
+.room-label {
+  position: absolute;
+  top: 4px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.5rem;
+  color: #666;
+  white-space: nowrap;
+  z-index: 5;
+  pointer-events: none;
+}
+
+/* ===== ROOM THEMES ===== */
+/* Ambitious - office */
+#room-ambitious .room-wall { background: #1a1a28; }
+#room-ambitious .furniture-desk {
+  position: absolute; bottom: 0; left: 15%; right: 15%;
+  height: 40px; background: #5a4a2a;
+  border: 3px solid #3a3018;
+  border-bottom: none;
+}
+#room-ambitious .furniture-whiteboard {
+  position: absolute; top: 20px; left: 20%;
+  width: 60%; height: 50px;
+  background: #e8e8e0; border: 4px solid #888;
+}
+#room-ambitious .wb-text {
+  position: absolute; top: 6px; left: 6px;
+  font-size: 0.35rem; color: #c44;
+  line-height: 1.8;
+}
+
+/* Lounge - centre */
+#room-lounge .room-wall { background: #1e1a1a; }
+#room-lounge .furniture-couch {
+  position: absolute; bottom: 0; left: 10%;
+  width: 45%; height: 36px;
+  background: #5a3a2a; border: 3px solid #3a2218;
+  border-bottom: none; border-radius: 4px 4px 0 0;
+}
+#room-lounge .furniture-table {
+  position: absolute; bottom: 0; right: 15%;
+  width: 25%; height: 28px;
+  background: #4a3a20; border: 3px solid #2a2010;
+  border-bottom: none;
+}
+#room-lounge .furniture-lamp {
+  position: absolute; top: 12px; right: 20%;
+  width: 6px; height: 40px; background: #888;
+}
+#room-lounge .furniture-lamp::before {
+  content: ''; position: absolute;
+  top: -8px; left: -10px;
+  width: 26px; height: 12px;
+  background: var(--yellow-dim);
+  border-radius: 50% 50% 0 0;
+}
+#room-lounge .lamp-glow {
+  position: absolute; top: -4px; right: 12%;
+  width: 60px; height: 60px;
+  background: radial-gradient(circle, rgba(200,168,50,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+/* Anxious - filing room */
+#room-anxious .room-wall { background: #181a22; }
+#room-anxious .furniture-cabinet {
+  position: absolute; bottom: 0;
+  width: 28%; height: 60px;
+  background: #4a4a58; border: 3px solid #2a2a38;
+  border-bottom: none;
+}
+#room-anxious .cabinet-1 { left: 5%; }
+#room-anxious .cabinet-2 { left: 38%; }
+#room-anxious .cabinet-3 { right: 5%; }
+#room-anxious .cabinet-drawer {
+  position: absolute; left: 4px; right: 4px;
+  height: 12px; background: #5a5a68;
+  border: 2px solid #3a3a48;
+}
+#room-anxious .cd1 { top: 4px; }
+#room-anxious .cd2 { top: 20px; }
+#room-anxious .cd3 { top: 36px; }
+
+/* Evening - detox room */
+#room-evening .room-wall { background: #1a181a; }
+#room-evening .furniture-mat {
+  position: absolute; bottom: 0; left: 20%; right: 20%;
+  height: 8px; background: #3a5a4a;
+  border: 2px solid #2a4a3a;
+  border-bottom: none;
+}
+#room-evening .furniture-plant {
+  position: absolute; bottom: 0; right: 10%;
+  width: 16px; height: 30px;
+}
+#room-evening .plant-pot {
+  position: absolute; bottom: 0; left: 0;
+  width: 16px; height: 12px; background: #8a5a3a;
+  border: 2px solid #6a3a1a;
+  border-bottom: none;
+}
+#room-evening .plant-leaf {
+  position: absolute; bottom: 10px; left: 3px;
+  width: 10px; height: 20px;
+  background: #3a8a3a; border-radius: 50%;
+}
+
+/* Bedroom */
+#room-bedroom .room-wall { background: #14141e; }
+#room-bedroom .furniture-bed {
+  position: absolute; bottom: 0; left: 15%; right: 15%;
+  height: 36px;
+  background: #3a3a6a; border: 3px solid #2a2a4a;
+  border-bottom: none; border-radius: 6px 6px 0 0;
+}
+#room-bedroom .bed-pillow {
+  position: absolute; top: 4px; left: 8px;
+  width: 24px; height: 12px;
+  background: #e8e8e0; border: 2px solid #c8c8b8;
+  border-radius: 4px;
+}
+#room-bedroom .bed-blanket {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  height: 20px; background: #2d5a8a;
+  border-top: 3px solid #1a3a5a;
+}
+
+/* ===== DOORS ===== */
+.room-door {
+  position: absolute;
+  bottom: 0;
+  width: 28px;
+  height: 52px;
+  background: #5a4a3a;
+  border: 3px solid #3a2a1a;
+  border-bottom: none;
+  z-index: 10;
+  transition: background 0.3s;
+}
+.room-door.closed {
+  background: #3a2a1a;
+}
+.room-door .door-knob {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+  width: 6px; height: 6px;
+  background: var(--yellow);
+  border-radius: 50%;
+}
+#room-ambitious .room-door { right: -2px; }
+#room-anxious .room-door { left: -2px; }
+#room-evening .room-door { left: -2px; }
+#room-bedroom .room-door { left: -2px; }
+
+/* ===== CHARACTERS ===== */
+.character {
+  position: absolute;
+  bottom: 32px;
+  width: 24px;
+  height: 40px;
+  z-index: 20;
+  cursor: pointer;
+  transition: left 2.5s ease-in-out, opacity 0.3s;
+}
+.character .char-head {
+  width: 16px; height: 16px;
+  margin: 0 auto;
+  border: 2px solid;
+  border-radius: 2px;
+  position: relative;
+}
+.character .char-body {
+  width: 20px; height: 14px;
+  margin: 1px auto 0;
+  border: 2px solid;
+  border-radius: 1px;
+}
+.character .char-legs {
+  display: flex; justify-content: center; gap: 4px;
+  margin-top: 1px;
+}
+.character .char-leg {
+  width: 6px; height: 8px;
+  border: 2px solid;
+}
+.character .char-name {
+  position: absolute;
+  bottom: -14px; left: 50%;
+  transform: translateX(-50%);
+  font-size: 0.35rem;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+/* Character colors */
+#char-sleep .char-head { background: #1a5c53; border-color: var(--sleep-color); }
+#char-sleep .char-body { background: #1a4a43; border-color: var(--sleep-color); }
+#char-sleep .char-leg { background: #1a3a33; border-color: var(--teal-dark); }
+#char-sleep .char-name { color: var(--sleep-color); }
+
+#char-ambitious .char-head { background: #8a6a18; border-color: var(--ambitious-color); }
+#char-ambitious .char-body { background: #7a5a08; border-color: var(--ambitious-color); }
+#char-ambitious .char-leg { background: #5a4208; border-color: #a08020; }
+#char-ambitious .char-name { color: var(--ambitious-color); }
+
+#char-anxious .char-head { background: #3a4a7a; border-color: var(--anxious-color); }
+#char-anxious .char-body { background: #2a3a6a; border-color: var(--anxious-color); }
+#char-anxious .char-leg { background: #1a2a5a; border-color: #5070a8; }
+#char-anxious .char-name { color: var(--anxious-color); }
+
+#char-evening .char-head { background: #8a2828; border-color: var(--evening-color); }
+#char-evening .char-body { background: #7a1818; border-color: var(--evening-color); }
+#char-evening .char-leg { background: #5a1818; border-color: #a04040; }
+#char-evening .char-name { color: var(--evening-color); }
+
+/* Idle animations */
+.character.idle { animation: idle-bob 1.5s ease-in-out infinite; }
+#char-ambitious.idle { animation: idle-pace 2s ease-in-out infinite; }
+#char-anxious.idle { animation: idle-shake 0.8s ease-in-out infinite; }
+#char-evening.idle { animation: idle-sway 2.2s ease-in-out infinite; }
+#char-sleep.idle { animation: idle-bob 2.5s ease-in-out infinite; }
+
+@keyframes idle-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-3px); }
+}
+@keyframes idle-pace {
+  0%, 100% { transform: translateX(0) translateY(0); }
+  25% { transform: translateX(4px) translateY(-2px); }
+  75% { transform: translateX(-4px) translateY(-2px); }
+}
+@keyframes idle-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+@keyframes idle-sway {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-2px) rotate(2deg); }
+}
+
+.character.walking {
+  animation: walk-bounce 0.3s ease-in-out infinite !important;
+}
+@keyframes walk-bounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+
+/* Eyes on head */
+.char-eyes {
+  position: absolute;
+  top: 5px; left: 2px; right: 2px;
+  display: flex; justify-content: space-around;
+}
+.char-eye {
+  width: 3px; height: 3px;
+  background: #fff;
+  border-radius: 1px;
+}
+
+/* Clipboard for anxious */
+#char-anxious .clipboard {
+  position: absolute;
+  top: 18px; right: -4px;
+  width: 8px; height: 10px;
+  background: #e8e0c8;
+  border: 1px solid #aaa;
+}
+
+/* ===== DIALOGUE PANEL ===== */
+#dialogue-panel {
+  background: var(--panel-bg);
+  border-top: 4px solid var(--panel-border);
+  min-height: 200px;
+  padding: 16px;
+  position: relative;
+  display: none;
+  flex-direction: column;
+}
+#dialogue-panel.active {
+  display: flex;
+}
+
+#dialogue-speaker {
+  font-size: 0.7rem;
+  color: var(--teal);
+  margin-bottom: 8px;
+}
+#dialogue-text {
+  font-size: 0.6rem;
+  line-height: 2;
+  color: var(--text-green);
+  min-height: 40px;
+  margin-bottom: 12px;
+}
+#dialogue-text .cursor {
+  display: inline-block;
+  width: 8px; height: 12px;
+  background: var(--text-green);
+  animation: blink 0.6s step-end infinite;
+  vertical-align: middle;
+  margin-left: 2px;
+}
+
+#input-area {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+}
+#input-area.active { display: flex; }
+
+#input-label {
+  font-size: 0.55rem;
+  color: var(--yellow);
+}
+#user-input {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  background: #0a0a14;
+  border: 3px solid var(--border);
+  color: #e8e8e8;
+  padding: 10px;
+  outline: none;
+  resize: none;
+  min-height: 50px;
+}
+#user-input:focus { border-color: var(--teal); }
+
+#submit-btn, #confirm-btn, .action-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.55rem;
+  background: var(--teal-dark);
+  color: #e8e8e8;
+  border: 3px solid var(--teal);
+  padding: 10px 16px;
+  cursor: pointer;
+  align-self: flex-end;
+  transition: background 0.2s;
+}
+#submit-btn:hover, #confirm-btn:hover, .action-btn:hover {
+  background: var(--teal);
+}
+
+#confirm-area {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+#confirm-area.active { display: flex; }
+
+#confirm-checkbox-label {
+  font-size: 0.5rem;
+  color: var(--yellow);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+#confirm-checkbox {
+  width: 16px; height: 16px;
+  accent-color: var(--teal);
+  cursor: pointer;
+}
+
+/* ===== STATUS BAR ===== */
+#status-bar {
+  height: 28px;
+  background: #0c0c14;
+  border-top: 3px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 16px;
+}
+.status-indicator {
+  font-size: 0.4rem;
+  display: flex; align-items: center; gap: 4px;
+}
+.status-dot {
+  width: 8px; height: 8px;
+  border: 2px solid;
+  border-radius: 1px;
+}
+.status-dot.active { animation: blink 1.5s step-end infinite; }
+.status-dot.done { background: #444; border-color: #555; }
+
+#status-ambitious .status-dot { border-color: var(--ambitious-color); }
+#status-anxious .status-dot { border-color: var(--anxious-color); }
+#status-evening .status-dot { border-color: var(--evening-color); }
+#status-ambitious .status-dot.done { border-color: #555; }
+#status-anxious .status-dot.done { border-color: #555; }
+#status-evening .status-dot.done { border-color: #555; }
+
+/* ===== INSTRUCTION HINT ===== */
+#instruction-hint {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 0.6rem;
+  color: var(--yellow);
+  text-align: center;
+  line-height: 2.2;
+  z-index: 30;
+  pointer-events: none;
+  animation: blink 2s step-end infinite;
+}
+#instruction-hint.hidden { display: none; }
+
+/* ===== CLOSING SEQUENCE ===== */
+#closing-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0);
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 500;
+  transition: background 3s;
+}
+#closing-overlay.active { display: flex; }
+#closing-overlay.dimming { background: rgba(0,0,0,0.95); }
+#closing-text {
+  font-size: 0.7rem;
+  color: var(--teal);
+  text-align: center;
+  line-height: 2.5;
+  max-width: 80%;
+}
+
+/* ===== CLOSING INPUT PHASE ===== */
+#closing-input-panel {
+  display: none;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  background: var(--panel-bg);
+  border-top: 4px solid var(--panel-border);
+}
+#closing-input-panel.active { display: flex; }
+
+.closing-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.closing-field label {
+  font-size: 0.55rem;
+  color: var(--yellow);
+}
+.closing-field input, .closing-field textarea {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  background: #0a0a14;
+  border: 3px solid var(--border);
+  color: #e8e8e8;
+  padding: 10px;
+  outline: none;
+}
+.closing-field input:focus, .closing-field textarea:focus {
+  border-color: var(--teal);
+}
+
+/* ===== TRANSCRIPT SCREEN ===== */
+#transcript-screen {
+  display: none;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  background: var(--bg-dark);
+  padding: 24px 16px;
+}
+#transcript-screen.active { display: flex; }
+
+#transcript-doc {
+  background: #0e0e1a;
+  border: 3px solid var(--border);
+  max-width: 700px;
+  width: 100%;
+  padding: 24px;
+  margin-bottom: 20px;
+}
+#transcript-doc h2 {
+  font-size: 0.7rem;
+  color: var(--teal);
+  text-align: center;
+  margin-bottom: 8px;
+}
+#transcript-doc .t-date {
+  font-size: 0.5rem;
+  color: #888;
+  text-align: center;
+  margin-bottom: 16px;
+}
+.t-divider {
+  border: none;
+  border-top: 2px dashed #444;
+  margin: 12px 0;
+}
+.t-section h3 {
+  font-size: 0.55rem;
+  margin-bottom: 6px;
+}
+.t-section p {
+  font-size: 0.45rem;
+  line-height: 2;
+  margin-bottom: 4px;
+}
+.t-section .t-label { color: #888; }
+.t-section .t-value { color: #e8e8e8; }
+.t-section .t-ruling { color: var(--teal); }
+.t-section .t-check { color: var(--text-green); }
+.t-footer {
+  font-size: 0.5rem;
+  color: var(--teal);
+  text-align: center;
+  margin-top: 16px;
+}
+
+#download-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.6rem;
+  background: var(--teal-dark);
+  color: #e8e8e8;
+  border: 4px solid var(--teal);
+  padding: 14px 24px;
+  cursor: pointer;
+  margin-bottom: 20px;
+  transition: background 0.2s;
+}
+#download-btn:hover { background: var(--teal); }
+
+#restart-btn {
+  font-family: 'Press Start 2P', monospace;
+  font-size: 0.5rem;
+  background: transparent;
+  color: #666;
+  border: 3px solid #444;
+  padding: 10px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+#restart-btn:hover { border-color: #888; color: #aaa; }
+
+/* ===== MOBILE ===== */
+@media (max-width: 768px) {
+  #house {
+    flex-direction: column;
+    min-height: auto;
+  }
+  .room {
+    min-height: 200px;
+    border-right: none;
+    border-bottom: 4px solid var(--border);
+  }
+  .room:last-child { border-bottom: none; }
+  #roof::before { font-size: 0.5rem; }
+  #dialogue-text { font-size: 0.5rem; }
+  #user-input { font-size: 0.5rem; }
+  .character { bottom: 32px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== TITLE SCREEN ===== -->
+<div id="title-screen">
+  <h1>SLEEP BRIAN</h1>
+  <h2>INTERNAL BOARD MEETING</h2>
+  <p class="blink">[ CLICK TO BEGIN SESSION ]</p>
+</div>
+
+<!-- ===== GAME CONTAINER ===== -->
+<div id="game-container">
+
+  <!-- ROOF -->
+  <div id="roof"></div>
+
+  <!-- HOUSE -->
+  <div id="house">
+
+    <!-- AMBITIOUS BRIAN'S ROOM -->
+    <div class="room" id="room-ambitious">
+      <div class="room-label">THE ARCHITECT'S OFFICE</div>
+      <div class="room-body">
+        <div class="room-wall">
+          <div class="furniture-whiteboard">
+            <div class="wb-text">Q3 GOALS<br>IDEAS<br>PLANS</div>
+          </div>
+          <div class="furniture-desk"></div>
+          <div class="room-door" id="door-ambitious">
+            <div class="door-knob"></div>
+          </div>
+        </div>
+        <div class="room-floor"></div>
+      </div>
+    </div>
+
+    <!-- LOUNGE ROOM -->
+    <div class="room" id="room-lounge">
+      <div class="room-label">THE BOARDROOM</div>
+      <div class="room-body">
+        <div class="room-wall">
+          <div class="furniture-couch"></div>
+          <div class="furniture-table"></div>
+          <div class="furniture-lamp"></div>
+          <div class="lamp-glow"></div>
+          <div id="instruction-hint">CLICK A BRIAN<br>TO BEGIN CHECK-IN</div>
+        </div>
+        <div class="room-floor"></div>
+      </div>
+    </div>
+
+    <!-- ANXIOUS BRIAN'S ROOM -->
+    <div class="room" id="room-anxious">
+      <div class="room-label">THE AUDIT CHAMBER</div>
+      <div class="room-body">
+        <div class="room-wall">
+          <div class="furniture-cabinet cabinet-1">
+            <div class="cabinet-drawer cd1"></div>
+            <div class="cabinet-drawer cd2"></div>
+            <div class="cabinet-drawer cd3"></div>
+          </div>
+          <div class="furniture-cabinet cabinet-2">
+            <div class="cabinet-drawer cd1"></div>
+            <div class="cabinet-drawer cd2"></div>
+            <div class="cabinet-drawer cd3"></div>
+          </div>
+          <div class="furniture-cabinet cabinet-3">
+            <div class="cabinet-drawer cd1"></div>
+            <div class="cabinet-drawer cd2"></div>
+            <div class="cabinet-drawer cd3"></div>
+          </div>
+          <div class="room-door" id="door-anxious">
+            <div class="door-knob"></div>
+          </div>
+        </div>
+        <div class="room-floor"></div>
+      </div>
+    </div>
+
+    <!-- EVENING BRIAN'S ROOM -->
+    <div class="room" id="room-evening">
+      <div class="room-label">THE DETOX CHAMBER</div>
+      <div class="room-body">
+        <div class="room-wall">
+          <div class="furniture-mat"></div>
+          <div class="furniture-plant">
+            <div class="plant-leaf"></div>
+            <div class="plant-pot"></div>
+          </div>
+          <div class="room-door" id="door-evening">
+            <div class="door-knob"></div>
+          </div>
+        </div>
+        <div class="room-floor"></div>
+      </div>
+    </div>
+
+    <!-- BEDROOM -->
+    <div class="room" id="room-bedroom">
+      <div class="room-label">THE SLEEP CHAMBER</div>
+      <div class="room-body">
+        <div class="room-wall">
+          <div class="furniture-bed">
+            <div class="bed-pillow"></div>
+            <div class="bed-blanket"></div>
+          </div>
+          <div class="room-door" id="door-bedroom">
+            <div class="door-knob"></div>
+          </div>
+        </div>
+        <div class="room-floor"></div>
+      </div>
+    </div>
+
+    <!-- CHARACTERS (all start in lounge) -->
+    <div class="character idle" id="char-sleep" style="left: calc(20% + 60px); bottom: 36px;">
+      <div class="char-head"><div class="char-eyes"><div class="char-eye"></div><div class="char-eye"></div></div></div>
+      <div class="char-body"></div>
+      <div class="char-legs"><div class="char-leg"></div><div class="char-leg"></div></div>
+      <div class="char-name">SLEEP</div>
+    </div>
+    <div class="character idle" id="char-ambitious" style="left: calc(20% + 20px); bottom: 36px;">
+      <div class="char-head"><div class="char-eyes"><div class="char-eye"></div><div class="char-eye"></div></div></div>
+      <div class="char-body"></div>
+      <div class="char-legs"><div class="char-leg"></div><div class="char-leg"></div></div>
+      <div class="char-name">AMBITIOUS</div>
+    </div>
+    <div class="character idle" id="char-anxious" style="left: calc(20% + 90px); bottom: 36px;">
+      <div class="char-head"><div class="char-eyes"><div class="char-eye"></div><div class="char-eye"></div></div></div>
+      <div class="char-body"></div>
+      <div class="char-legs"><div class="char-leg"></div><div class="char-leg"></div></div>
+      <div class="char-name">ANXIOUS</div>
+      <div class="clipboard"></div>
+    </div>
+    <div class="character idle" id="char-evening" style="left: calc(20% + 130px); bottom: 36px;">
+      <div class="char-head"><div class="char-eyes"><div class="char-eye"></div><div class="char-eye"></div></div></div>
+      <div class="char-body"></div>
+      <div class="char-legs"><div class="char-leg"></div><div class="char-leg"></div></div>
+      <div class="char-name">EVENING</div>
+    </div>
+
+  </div>
+
+  <!-- DIALOGUE PANEL -->
+  <div id="dialogue-panel">
+    <div id="dialogue-speaker">SLEEP BRIAN:</div>
+    <div id="dialogue-text"></div>
+    <div id="input-area">
+      <label id="input-label"></label>
+      <textarea id="user-input" rows="2" maxlength="500"></textarea>
+      <button id="submit-btn">SUBMIT &gt;</button>
+    </div>
+    <div id="confirm-area">
+      <label id="confirm-checkbox-label">
+        <input type="checkbox" id="confirm-checkbox">
+        <span id="confirm-text"></span>
+      </label>
+      <button id="confirm-btn" style="display:none;">PROCEED &gt;</button>
+    </div>
+  </div>
+
+  <!-- CLOSING INPUT PANEL -->
+  <div id="closing-input-panel">
+    <div id="dialogue-speaker-closing" style="font-size:0.7rem;color:var(--teal);margin-bottom:8px;">SLEEP BRIAN:</div>
+    <div id="closing-dialogue-text" style="font-size:0.6rem;line-height:2;color:var(--text-green);min-height:20px;margin-bottom:12px;"></div>
+    <div class="closing-field">
+      <label>THE ONE THING MORNING BRIAN MUST DO FIRST TOMORROW:</label>
+      <textarea id="morning-task-input" rows="2" maxlength="500"></textarea>
+    </div>
+    <div class="closing-field" style="margin-top:8px;">
+      <label>SIGNATURE (SELF-AGREEMENT):</label>
+      <input type="text" id="signature-input" maxlength="200">
+    </div>
+    <button class="action-btn" id="closing-submit-btn" style="align-self:flex-end;margin-top:12px;">ADJOURN MEETING &gt;</button>
+  </div>
+
+  <!-- STATUS BAR -->
+  <div id="status-bar">
+    <div class="status-indicator" id="status-ambitious">
+      <div class="status-dot active"></div>
+      <span style="color:var(--ambitious-color);">AMB</span>
+    </div>
+    <div class="status-indicator" id="status-anxious">
+      <div class="status-dot active"></div>
+      <span style="color:var(--anxious-color);">ANX</span>
+    </div>
+    <div class="status-indicator" id="status-evening">
+      <div class="status-dot active"></div>
+      <span style="color:var(--evening-color);">EVE</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- CLOSING OVERLAY -->
+<div id="closing-overlay">
+  <div id="closing-text"></div>
+</div>
+
+<!-- TRANSCRIPT SCREEN -->
+<div id="transcript-screen">
+  <div id="transcript-doc"></div>
+  <button id="download-btn">PRINT TO PDF / DOWNLOAD REPORT</button>
+  <button id="restart-btn">[ NEW SESSION ]</button>
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ===== STATE =====
+  const STATE_KEY = 'sleepbrian_session';
+  let state = {
+    started: false,
+    phase: 'title', // title, meeting, closing-input, closing-anim, transcript
+    completed: { ambitious: false, anxious: false, evening: false },
+    currentBrian: null,
+    dialogueStep: null, // 'intro', 'input', 'ruling', 'confirm'
+    inputs: { ambitious: '', anxious: '', evening: '' },
+    morningTask: '',
+    signature: '',
+    sessionTime: null
+  };
+
+  function saveState() {
+    try { localStorage.setItem(STATE_KEY, JSON.stringify(state)); } catch(e) {}
+  }
+  function loadState() {
+    try {
+      const s = localStorage.getItem(STATE_KEY);
+      if (s) { state = JSON.parse(s); return true; }
+    } catch(e) {}
+    return false;
+  }
+  function clearState() {
+    try { localStorage.removeItem(STATE_KEY); } catch(e) {}
+  }
+
+  // ===== DIALOGUE DATA =====
+  const brianData = {
+    ambitious: {
+      intro: "AMBITIOUS BRIAN. THE ARCHITECT. WHAT BRILLIANT IDEAS ARE TRYING TO KEEP YOU AWAKE?",
+      inputLabel: "INPUT THE IDEA OR TASK:",
+      ruling: "I ACKNOWLEDGE THIS VALUE. HOWEVER, WE ARE CHEMICALLY COMPROMISED. I AM ASSIGNING THIS TASK TO MORNING BRIAN. CAPTURED. EXECUTION TIME SET FOR TOMORROW MORNING.",
+      confirm: "CAPTURED. MORNING BRIAN HAS HIS ORDERS."
+    },
+    anxious: {
+      intro: "ANXIOUS BRIAN. THE AUDITOR. WHAT REGRETS OR FEARS ARE SCANNING FOR DANGER?",
+      inputLabel: "INPUT THE WORRY OR ERROR:",
+      ruling: "I HEAR YOU. THE EVENT IS LOGGED. RUMINATING NOW CREATES A NET NEGATIVE ENERGY DEFICIT FOR TOMORROW. WE ARE SAFE FOR THE NEXT 8 HOURS.",
+      confirm: "LOGGED. WE WILL REVIEW THIS CALMLY TOMORROW MORNING."
+    },
+    evening: {
+      intro: "EVENING BRIAN. THE SABOTEUR. IMPULSE CHECK. SUGAR, SCREENS, CHAOS. WHAT IS THE DETECTED IMPULSE?",
+      inputLabel: "INPUT THE IMPULSE:",
+      ruling: "REQUEST DENIED. YOU DO NOT HAVE VOTING RIGHTS. STAND DOWN.",
+      confirm: "IMPULSE DISMISSED."
+    }
+  };
+
+  // ===== DOM REFS =====
+  const $ = id => document.getElementById(id);
+  const titleScreen = $('title-screen');
+  const gameContainer = $('game-container');
+  const house = $('house');
+  const dialoguePanel = $('dialogue-panel');
+  const dialogueSpeaker = $('dialogue-speaker');
+  const dialogueText = $('dialogue-text');
+  const inputArea = $('input-area');
+  const inputLabel = $('input-label');
+  const userInput = $('user-input');
+  const submitBtn = $('submit-btn');
+  const confirmArea = $('confirm-area');
+  const confirmCheckbox = $('confirm-checkbox');
+  const confirmText = $('confirm-text');
+  const confirmBtn = $('confirm-btn');
+  const instructionHint = $('instruction-hint');
+  const closingOverlay = $('closing-overlay');
+  const closingText = $('closing-text');
+  const closingInputPanel = $('closing-input-panel');
+  const closingDialogueText = $('closing-dialogue-text');
+  const morningTaskInput = $('morning-task-input');
+  const signatureInput = $('signature-input');
+  const closingSubmitBtn = $('closing-submit-btn');
+  const transcriptScreen = $('transcript-screen');
+  const transcriptDoc = $('transcript-doc');
+  const downloadBtn = $('download-btn');
+  const restartBtn = $('restart-btn');
+
+  const chars = {
+    sleep: $('char-sleep'),
+    ambitious: $('char-ambitious'),
+    anxious: $('char-anxious'),
+    evening: $('char-evening')
+  };
+
+  // ===== TYPEWRITER =====
+  let typewriterTimeout = null;
+  function typewrite(el, text, speed, callback) {
+    if (typewriterTimeout) clearTimeout(typewriterTimeout);
+    el.innerHTML = '';
+    let i = 0;
+    function tick() {
+      if (i < text.length) {
+        el.innerHTML = text.substring(0, i + 1) + '<span class="cursor"></span>';
+        i++;
+        typewriterTimeout = setTimeout(tick, speed);
+      } else {
+        el.innerHTML = text;
+        if (callback) callback();
+      }
+    }
+    tick();
+  }
+
+  // ===== POSITIONING =====
+  function getRoomCenter(roomId) {
+    const room = $(roomId);
+    const houseRect = house.getBoundingClientRect();
+    const roomRect = room.getBoundingClientRect();
+    return roomRect.left - houseRect.left + roomRect.width / 2 - 12;
+  }
+
+  function positionCharsInLounge() {
+    const base = getRoomCenter('room-lounge');
+    chars.sleep.style.left = (base + 30) + 'px';
+    chars.ambitious.style.left = (base - 30) + 'px';
+    chars.anxious.style.left = (base + 60) + 'px';
+    chars.evening.style.left = (base - 60) + 'px';
+  }
+
+  // ===== CHARACTER MOVEMENT =====
+  function moveCharToRoom(brianKey, callback) {
+    const roomMap = {
+      ambitious: 'room-ambitious',
+      anxious: 'room-anxious',
+      evening: 'room-evening',
+      sleep: 'room-bedroom'
+    };
+    const char = chars[brianKey];
+    const target = getRoomCenter(roomMap[brianKey]);
+
+    char.classList.remove('idle');
+    char.classList.add('walking');
+
+    char.style.left = target + 'px';
+
+    setTimeout(() => {
+      char.classList.remove('walking');
+      // Close door
+      const doorId = 'door-' + (brianKey === 'sleep' ? 'bedroom' : brianKey);
+      const door = $(doorId);
+      if (door) door.classList.add('closed');
+      if (callback) callback();
+    }, 2800);
+  }
+
+  function moveSleepToBedroomDoor(callback) {
+    const target = getRoomCenter('room-bedroom') - 20;
+    const char = chars.sleep;
+    char.classList.remove('idle');
+    char.classList.add('walking');
+    char.style.left = target + 'px';
+
+    setTimeout(() => {
+      char.classList.remove('walking');
+      char.classList.add('idle');
+      if (callback) callback();
+    }, 2800);
+  }
+
+  // ===== DIALOGUE FLOW =====
+  let busy = false;
+
+  function startBrianCheckin(brianKey) {
+    if (busy || state.completed[brianKey] || state.currentBrian) return;
+    busy = true;
+    state.currentBrian = brianKey;
+    state.dialogueStep = 'intro';
+    instructionHint.classList.add('hidden');
+
+    // Disable other character clicks
+    Object.keys(chars).forEach(k => {
+      if (k !== 'sleep') chars[k].style.pointerEvents = 'none';
+    });
+
+    dialoguePanel.classList.add('active');
+    dialogueSpeaker.textContent = 'SLEEP BRIAN:';
+    inputArea.classList.remove('active');
+    confirmArea.classList.remove('active');
+
+    typewrite(dialogueText, brianData[brianKey].intro, 30, () => {
+      state.dialogueStep = 'input';
+      saveState();
+      showInputPhase(brianKey);
+      busy = false;
+    });
+    saveState();
+  }
+
+  function showInputPhase(brianKey) {
+    inputLabel.textContent = brianData[brianKey].inputLabel;
+    userInput.value = state.inputs[brianKey] || '';
+    inputArea.classList.add('active');
+    confirmArea.classList.remove('active');
+    userInput.focus();
+  }
+
+  function handleSubmit() {
+    const brianKey = state.currentBrian;
+    if (!brianKey) return;
+    const val = userInput.value.trim();
+    if (!val) return;
+    busy = true;
+
+    state.inputs[brianKey] = val;
+    state.dialogueStep = 'ruling';
+    saveState();
+
+    inputArea.classList.remove('active');
+    dialogueSpeaker.textContent = 'SLEEP BRIAN:';
+    typewrite(dialogueText, brianData[brianKey].ruling, 25, () => {
+      state.dialogueStep = 'confirm';
+      saveState();
+      showConfirmPhase(brianKey);
+      busy = false;
+    });
+  }
+
+  function showConfirmPhase(brianKey) {
+    confirmText.textContent = '[ ' + brianData[brianKey].confirm + ' ]';
+    confirmCheckbox.checked = false;
+    confirmBtn.style.display = 'none';
+    confirmArea.classList.add('active');
+  }
+
+  confirmCheckbox.addEventListener('change', () => {
+    confirmBtn.style.display = confirmCheckbox.checked ? 'block' : 'none';
+  });
+
+  function handleConfirm() {
+    if (!confirmCheckbox.checked) return;
+    const brianKey = state.currentBrian;
+    if (!brianKey) return;
+    busy = true;
+
+    state.completed[brianKey] = true;
+    state.dialogueStep = null;
+    state.currentBrian = null;
+    saveState();
+
+    // Close dialogue
+    dialoguePanel.classList.remove('active');
+    confirmArea.classList.remove('active');
+
+    // Move character to their room
+    moveCharToRoom(brianKey, () => {
+      // Mark status
+      const statusDot = $('status-' + brianKey).querySelector('.status-dot');
+      statusDot.classList.remove('active');
+      statusDot.classList.add('done');
+
+      // Re-enable clicks on remaining brians
+      Object.keys(chars).forEach(k => {
+        if (k !== 'sleep' && !state.completed[k]) {
+          chars[k].style.pointerEvents = 'auto';
+        }
+      });
+
+      busy = false;
+
+      // Check if all done
+      if (state.completed.ambitious && state.completed.anxious && state.completed.evening) {
+        setTimeout(() => startClosingSequence(), 800);
+      } else {
+        instructionHint.textContent = 'CLICK NEXT BRIAN\nTO CONTINUE';
+        instructionHint.classList.remove('hidden');
+      }
+    });
+  }
+
+  submitBtn.addEventListener('click', handleSubmit);
+  userInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSubmit(); }
+  });
+  confirmBtn.addEventListener('click', handleConfirm);
+
+  // Character click handlers
+  Object.keys(chars).forEach(k => {
+    if (k === 'sleep') return;
+    chars[k].addEventListener('click', () => startBrianCheckin(k));
+  });
+
+  // ===== CLOSING SEQUENCE =====
+  function startClosingSequence() {
+    state.phase = 'closing-input';
+    saveState();
+
+    // Show closing input panel
+    dialoguePanel.classList.remove('active');
+    closingInputPanel.classList.add('active');
+    typewrite(closingDialogueText, "ALL BRIANS ARE ACCOUNTED FOR. FINAL PROTOCOL.", 30, () => {
+      morningTaskInput.focus();
+    });
+  }
+
+  closingSubmitBtn.addEventListener('click', () => {
+    const task = morningTaskInput.value.trim();
+    const sig = signatureInput.value.trim();
+    if (!task || !sig) return;
+
+    state.morningTask = task;
+    state.signature = sig;
+    state.sessionTime = new Date().toISOString();
+    state.phase = 'closing-anim';
+    saveState();
+
+    closingInputPanel.classList.remove('active');
+    gameContainer.style.display = 'none';
+
+    // Move Sleep Brian to bedroom door animation
+    // Since we hide the game, we go straight to closing overlay
+    runClosingAnimation();
+  });
+
+  function runClosingAnimation() {
+    closingOverlay.classList.add('active');
+    const lines = [
+      "THE MEETING IS ADJOURNED.",
+      "",
+      "SLEEP BRIAN HAS THE CON.",
+      "",
+      "SYSTEM IS POWERING DOWN."
+    ];
+
+    typewrite(closingText, lines.join('\n'), 50, () => {
+      setTimeout(() => {
+        closingOverlay.classList.add('dimming');
+        setTimeout(() => {
+          showTranscript();
+        }, 3500);
+      }, 1500);
+    });
+
+    closingText.style.whiteSpace = 'pre-line';
+  }
+
+  // ===== TRANSCRIPT =====
+  function showTranscript() {
+    closingOverlay.classList.remove('active', 'dimming');
+    closingOverlay.style.display = 'none';
+    state.phase = 'transcript';
+    saveState();
+
+    const dt = state.sessionTime ? new Date(state.sessionTime) : new Date();
+    const dateStr = dt.toLocaleDateString('en-AU', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+    const timeStr = dt.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+
+    transcriptDoc.innerHTML = `
+      <h2>SLEEP BRIAN INTERNAL BOARD MEETING</h2>
+      <h2 style="margin-top:4px;">SESSION TRANSCRIPT</h2>
+      <p class="t-date">${dateStr} - ${timeStr}</p>
+      <hr class="t-divider">
+
+      <div class="t-section">
+        <h3 style="color:var(--ambitious-color);">1. AMBITIOUS BRIAN - THE ARCHITECT</h3>
+        <p><span class="t-label">INPUT:</span> <span class="t-value">${escHtml(state.inputs.ambitious)}</span></p>
+        <p><span class="t-label">RULING:</span> <span class="t-ruling">${brianData.ambitious.ruling}</span></p>
+        <p class="t-check">[X] ${brianData.ambitious.confirm}</p>
+      </div>
+      <hr class="t-divider">
+
+      <div class="t-section">
+        <h3 style="color:var(--anxious-color);">2. ANXIOUS BRIAN - THE AUDITOR</h3>
+        <p><span class="t-label">INPUT:</span> <span class="t-value">${escHtml(state.inputs.anxious)}</span></p>
+        <p><span class="t-label">RULING:</span> <span class="t-ruling">${brianData.anxious.ruling}</span></p>
+        <p class="t-check">[X] ${brianData.anxious.confirm}</p>
+      </div>
+      <hr class="t-divider">
+
+      <div class="t-section">
+        <h3 style="color:var(--evening-color);">3. EVENING BRIAN - THE SABOTEUR</h3>
+        <p><span class="t-label">INPUT:</span> <span class="t-value">${escHtml(state.inputs.evening)}</span></p>
+        <p><span class="t-label">RULING:</span> <span class="t-ruling">${brianData.evening.ruling}</span></p>
+        <p class="t-check">[X] ${brianData.evening.confirm}</p>
+      </div>
+      <hr class="t-divider">
+
+      <div class="t-section">
+        <h3 style="color:var(--yellow);">MORNING BRIAN - PRIORITY TASK</h3>
+        <p><span class="t-value">${escHtml(state.morningTask)}</span></p>
+      </div>
+      <hr class="t-divider">
+
+      <div class="t-section">
+        <h3 style="color:var(--grey-light);">SIGNATURE / SELF-AGREEMENT</h3>
+        <p><span class="t-value">${escHtml(state.signature)}</span></p>
+      </div>
+      <hr class="t-divider">
+
+      <p class="t-footer">THE MEETING IS ADJOURNED. SLEEP BRIAN HAS THE CON.</p>
+    `;
+
+    transcriptScreen.classList.add('active');
+  }
+
+  function escHtml(s) {
+    const d = document.createElement('div');
+    d.textContent = s || '';
+    return d.innerHTML;
+  }
+
+  // ===== PDF GENERATION =====
+  downloadBtn.addEventListener('click', generatePDF);
+
+  function generatePDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+    const pageW = 210;
+    const margin = 20;
+    const contentW = pageW - margin * 2;
+    let y = 20;
+
+    doc.setFont('Courier', 'normal');
+
+    function addLine(text, size, bold) {
+      if (y > 270) { doc.addPage(); y = 20; }
+      doc.setFontSize(size || 10);
+      if (bold) doc.setFont('Courier', 'bold');
+      else doc.setFont('Courier', 'normal');
+      const lines = doc.splitTextToSize(text, contentW);
+      doc.text(lines, margin, y);
+      y += lines.length * (size ? size * 0.5 : 5) + 2;
+    }
+
+    function addDivider() {
+      if (y > 270) { doc.addPage(); y = 20; }
+      y += 2;
+      doc.setLineDashPattern([2, 2], 0);
+      doc.setDrawColor(100);
+      doc.line(margin, y, pageW - margin, y);
+      doc.setLineDashPattern([], 0);
+      y += 4;
+    }
+
+    const dt = state.sessionTime ? new Date(state.sessionTime) : new Date();
+    const dateStr = dt.toLocaleDateString('en-AU', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+    });
+    const timeStr = dt.toLocaleTimeString('en-AU', { hour: '2-digit', minute: '2-digit' });
+
+    // Header
+    addLine('=============================================', 8);
+    addLine('SLEEP BRIAN INTERNAL BOARD MEETING', 12, true);
+    addLine('SESSION TRANSCRIPT', 10, true);
+    addLine('=============================================', 8);
+    y += 2;
+    addLine('DATE: ' + dateStr, 9);
+    addLine('TIME: ' + timeStr, 9);
+    addDivider();
+
+    // Ambitious
+    addLine('1. AMBITIOUS BRIAN - THE ARCHITECT', 10, true);
+    y += 2;
+    addLine('INPUT: ' + (state.inputs.ambitious || ''), 9);
+    y += 1;
+    addLine('RULING: ' + brianData.ambitious.ruling, 8);
+    y += 1;
+    addLine('[X] ' + brianData.ambitious.confirm, 8);
+    addDivider();
+
+    // Anxious
+    addLine('2. ANXIOUS BRIAN - THE AUDITOR', 10, true);
+    y += 2;
+    addLine('INPUT: ' + (state.inputs.anxious || ''), 9);
+    y += 1;
+    addLine('RULING: ' + brianData.anxious.ruling, 8);
+    y += 1;
+    addLine('[X] ' + brianData.anxious.confirm, 8);
+    addDivider();
+
+    // Evening
+    addLine('3. EVENING BRIAN - THE SABOTEUR', 10, true);
+    y += 2;
+    addLine('INPUT: ' + (state.inputs.evening || ''), 9);
+    y += 1;
+    addLine('RULING: ' + brianData.evening.ruling, 8);
+    y += 1;
+    addLine('[X] ' + brianData.evening.confirm, 8);
+    addDivider();
+
+    // Morning task
+    addLine('MORNING BRIAN - PRIORITY TASK', 10, true);
+    y += 2;
+    addLine(state.morningTask || '', 9);
+    addDivider();
+
+    // Signature
+    addLine('SIGNATURE / SELF-AGREEMENT', 10, true);
+    y += 2;
+    addLine(state.signature || '', 9);
+    addDivider();
+
+    // Footer
+    y += 4;
+    addLine('THE MEETING IS ADJOURNED. SLEEP BRIAN HAS THE CON.', 9, true);
+
+    // Save
+    const now = state.sessionTime ? new Date(state.sessionTime) : new Date();
+    const yy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    doc.save('SleepBrian_' + yy + '-' + mm + '-' + dd + '.pdf');
+  }
+
+  // ===== RESTART =====
+  restartBtn.addEventListener('click', () => {
+    clearState();
+    location.reload();
+  });
+
+  // ===== TITLE SCREEN =====
+  titleScreen.addEventListener('click', () => {
+    titleScreen.style.display = 'none';
+    gameContainer.classList.add('active');
+    state.started = true;
+    state.phase = 'meeting';
+    saveState();
+
+    // Position characters after layout
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        positionCharsInLounge();
+        // Reposition already-settled characters if restoring
+        restoreCompletedBrians();
+      });
+    });
+  });
+
+  // Handle window resize
+  let resizeTimer;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      if (state.phase === 'meeting') {
+        // Reposition characters that are still in lounge
+        Object.keys(chars).forEach(k => {
+          if (k === 'sleep' || state.completed[k]) return;
+        });
+        // Only reposition if not mid-animation
+        if (!busy && !state.currentBrian) {
+          repositionLoungeChars();
+        }
+      }
+    }, 200);
+  });
+
+  function repositionLoungeChars() {
+    const base = getRoomCenter('room-lounge');
+    let offset = -40;
+    if (!state.completed.ambitious) {
+      chars.ambitious.style.left = (base + offset) + 'px';
+      offset += 30;
+    }
+    chars.sleep.style.left = (base + offset) + 'px';
+    offset += 30;
+    if (!state.completed.anxious) {
+      chars.anxious.style.left = (base + offset) + 'px';
+      offset += 30;
+    }
+    if (!state.completed.evening) {
+      chars.evening.style.left = (base + offset) + 'px';
+    }
+  }
+
+  function restoreCompletedBrians() {
+    Object.keys(state.completed).forEach(k => {
+      if (state.completed[k]) {
+        const roomMap = { ambitious: 'room-ambitious', anxious: 'room-anxious', evening: 'room-evening' };
+        const target = getRoomCenter(roomMap[k]);
+        const char = chars[k];
+        char.style.transition = 'none';
+        char.style.left = target + 'px';
+        char.classList.remove('idle');
+        char.style.pointerEvents = 'none';
+        requestAnimationFrame(() => { char.style.transition = ''; });
+
+        const doorId = 'door-' + k;
+        const door = $(doorId);
+        if (door) door.classList.add('closed');
+
+        const statusDot = $('status-' + k).querySelector('.status-dot');
+        statusDot.classList.remove('active');
+        statusDot.classList.add('done');
+      }
+    });
+
+    // Position remaining chars in lounge nicely
+    repositionLoungeChars();
+
+    // Check if we should resume a particular phase
+    if (state.completed.ambitious && state.completed.anxious && state.completed.evening) {
+      if (state.phase === 'closing-input') {
+        setTimeout(() => startClosingSequence(), 500);
+      } else if (state.phase === 'transcript') {
+        showTranscript();
+      } else if (state.phase === 'closing-anim') {
+        // Skip to transcript on restore
+        showTranscript();
+      }
+    } else if (state.currentBrian && state.dialogueStep) {
+      // Restore mid-checkin
+      const bk = state.currentBrian;
+      instructionHint.classList.add('hidden');
+      Object.keys(chars).forEach(k => {
+        if (k !== 'sleep') chars[k].style.pointerEvents = 'none';
+      });
+      dialoguePanel.classList.add('active');
+      dialogueSpeaker.textContent = 'SLEEP BRIAN:';
+
+      if (state.dialogueStep === 'input' || state.dialogueStep === 'intro') {
+        dialogueText.textContent = brianData[bk].intro;
+        showInputPhase(bk);
+      } else if (state.dialogueStep === 'ruling') {
+        dialogueText.textContent = brianData[bk].ruling;
+        showConfirmPhase(bk);
+      } else if (state.dialogueStep === 'confirm') {
+        dialogueText.textContent = brianData[bk].ruling;
+        showConfirmPhase(bk);
+      }
+    }
+  }
+
+  // ===== INIT / RESTORE =====
+  function init() {
+    const restored = loadState();
+    if (restored && state.started) {
+      // Skip title, go to game
+      titleScreen.style.display = 'none';
+      if (state.phase === 'transcript') {
+        gameContainer.style.display = 'none';
+        showTranscript();
+      } else {
+        gameContainer.classList.add('active');
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            positionCharsInLounge();
+            restoreCompletedBrians();
+          });
+        });
+      }
+    }
+  }
+
+  init();
+
+})();
+</script>
+</body>
+</html>
