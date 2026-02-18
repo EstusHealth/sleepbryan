@@ -9,7 +9,7 @@
 <style>
 /* ===== RESET & BASE ===== */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-html { font-size: 10px; }
+html { font-size: 16px; }
 body {
   font-family: 'Press Start 2P', monospace;
   background: #0a0a12;
@@ -51,19 +51,19 @@ body {
   cursor: pointer;
 }
 #title-screen h1 {
-  font-size: 2.8rem;
+  font-size: 3.2rem;
   color: var(--teal);
   text-shadow: 3px 3px 0 #000;
   margin-bottom: 1.5rem;
   animation: title-pulse 2s ease-in-out infinite;
 }
 #title-screen h2 {
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--yellow);
   margin-bottom: 3rem;
 }
 #title-screen .blink {
-  font-size: 1rem;
+  font-size: 1.1rem;
   color: var(--grey-light);
   animation: blink 1.2s step-end infinite;
 }
@@ -97,7 +97,7 @@ body {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   color: var(--teal);
   white-space: nowrap;
 }
@@ -149,7 +149,7 @@ body {
   position: absolute;
   top: 4px; left: 50%;
   transform: translateX(-50%);
-  font-size: 0.5rem;
+  font-size: 0.55rem;
   color: #666;
   white-space: nowrap;
   z-index: 5;
@@ -172,7 +172,7 @@ body {
 }
 #room-ambitious .wb-text {
   position: absolute; top: 6px; left: 6px;
-  font-size: 0.35rem; color: #c44;
+  font-size: 0.4rem; color: #c44;
   line-height: 1.8;
 }
 
@@ -333,9 +333,9 @@ body {
 }
 .character .char-name {
   position: absolute;
-  bottom: -14px; left: 50%;
+  bottom: -16px; left: 50%;
   transform: translateX(-50%);
-  font-size: 0.35rem;
+  font-size: 0.45rem;
   white-space: nowrap;
   pointer-events: none;
 }
@@ -420,8 +420,8 @@ body {
 #dialogue-panel {
   background: var(--panel-bg);
   border-top: 4px solid var(--panel-border);
-  min-height: 200px;
-  padding: 16px;
+  min-height: 220px;
+  padding: 20px 24px;
   position: relative;
   display: none;
   flex-direction: column;
@@ -431,20 +431,20 @@ body {
 }
 
 #dialogue-speaker {
-  font-size: 0.7rem;
+  font-size: 1rem;
   color: var(--teal);
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 #dialogue-text {
-  font-size: 0.6rem;
-  line-height: 2;
+  font-size: 0.85rem;
+  line-height: 2.2;
   color: var(--text-green);
-  min-height: 40px;
-  margin-bottom: 12px;
+  min-height: 50px;
+  margin-bottom: 16px;
 }
 #dialogue-text .cursor {
   display: inline-block;
-  width: 8px; height: 12px;
+  width: 10px; height: 14px;
   background: var(--text-green);
   animation: blink 0.6s step-end infinite;
   vertical-align: middle;
@@ -454,34 +454,35 @@ body {
 #input-area {
   display: none;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 #input-area.active { display: flex; }
 
 #input-label {
-  font-size: 0.55rem;
+  font-size: 0.8rem;
   color: var(--yellow);
 }
 #user-input {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   background: #0a0a14;
   border: 3px solid var(--border);
   color: #e8e8e8;
-  padding: 10px;
+  padding: 12px;
   outline: none;
   resize: none;
-  min-height: 50px;
+  min-height: 60px;
+  line-height: 2;
 }
 #user-input:focus { border-color: var(--teal); }
 
 #submit-btn, #confirm-btn, .action-btn {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.55rem;
+  font-size: 0.75rem;
   background: var(--teal-dark);
   color: #e8e8e8;
   border: 3px solid var(--teal);
-  padding: 10px 16px;
+  padding: 12px 20px;
   cursor: pointer;
   align-self: flex-end;
   transition: background 0.2s;
@@ -499,32 +500,34 @@ body {
 #confirm-area.active { display: flex; }
 
 #confirm-checkbox-label {
-  font-size: 0.5rem;
+  font-size: 0.75rem;
   color: var(--yellow);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  line-height: 2;
 }
 #confirm-checkbox {
-  width: 16px; height: 16px;
+  width: 20px; height: 20px;
   accent-color: var(--teal);
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 /* ===== STATUS BAR ===== */
 #status-bar {
-  height: 28px;
+  height: 36px;
   background: #0c0c14;
   border-top: 3px solid var(--border);
   display: flex;
   align-items: center;
-  padding: 0 12px;
-  gap: 16px;
+  padding: 0 16px;
+  gap: 20px;
 }
 .status-indicator {
-  font-size: 0.4rem;
-  display: flex; align-items: center; gap: 4px;
+  font-size: 0.6rem;
+  display: flex; align-items: center; gap: 6px;
 }
 .status-dot {
   width: 8px; height: 8px;
@@ -547,10 +550,10 @@ body {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  font-size: 0.6rem;
+  font-size: 0.85rem;
   color: var(--yellow);
   text-align: center;
-  line-height: 2.2;
+  line-height: 2.4;
   z-index: 30;
   pointer-events: none;
   animation: blink 2s step-end infinite;
@@ -571,10 +574,10 @@ body {
 #closing-overlay.active { display: flex; }
 #closing-overlay.dimming { background: rgba(0,0,0,0.95); }
 #closing-text {
-  font-size: 0.7rem;
+  font-size: 1.1rem;
   color: var(--teal);
   text-align: center;
-  line-height: 2.5;
+  line-height: 2.8;
   max-width: 80%;
 }
 
@@ -595,17 +598,19 @@ body {
   gap: 6px;
 }
 .closing-field label {
-  font-size: 0.55rem;
+  font-size: 0.8rem;
   color: var(--yellow);
+  line-height: 2;
 }
 .closing-field input, .closing-field textarea {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   background: #0a0a14;
   border: 3px solid var(--border);
   color: #e8e8e8;
-  padding: 10px;
+  padding: 12px;
   outline: none;
+  line-height: 2;
 }
 .closing-field input:focus, .closing-field textarea:focus {
   border-color: var(--teal);
@@ -625,68 +630,68 @@ body {
 #transcript-doc {
   background: #0e0e1a;
   border: 3px solid var(--border);
-  max-width: 700px;
+  max-width: 800px;
   width: 100%;
-  padding: 24px;
-  margin-bottom: 20px;
+  padding: 32px;
+  margin-bottom: 24px;
 }
 #transcript-doc h2 {
-  font-size: 0.7rem;
+  font-size: 1rem;
   color: var(--teal);
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
 }
 #transcript-doc .t-date {
-  font-size: 0.5rem;
+  font-size: 0.7rem;
   color: #888;
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 .t-divider {
   border: none;
   border-top: 2px dashed #444;
-  margin: 12px 0;
+  margin: 16px 0;
 }
 .t-section h3 {
-  font-size: 0.55rem;
-  margin-bottom: 6px;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
 }
 .t-section p {
-  font-size: 0.45rem;
-  line-height: 2;
-  margin-bottom: 4px;
+  font-size: 0.65rem;
+  line-height: 2.2;
+  margin-bottom: 6px;
 }
 .t-section .t-label { color: #888; }
 .t-section .t-value { color: #e8e8e8; }
 .t-section .t-ruling { color: var(--teal); }
 .t-section .t-check { color: var(--text-green); }
 .t-footer {
-  font-size: 0.5rem;
+  font-size: 0.75rem;
   color: var(--teal);
   text-align: center;
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 #download-btn {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.6rem;
+  font-size: 0.8rem;
   background: var(--teal-dark);
   color: #e8e8e8;
   border: 4px solid var(--teal);
-  padding: 14px 24px;
+  padding: 16px 28px;
   cursor: pointer;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
   transition: background 0.2s;
 }
 #download-btn:hover { background: var(--teal); }
 
 #restart-btn {
   font-family: 'Press Start 2P', monospace;
-  font-size: 0.5rem;
+  font-size: 0.7rem;
   background: transparent;
   color: #666;
   border: 3px solid #444;
-  padding: 10px 16px;
+  padding: 12px 20px;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -704,9 +709,9 @@ body {
     border-bottom: 4px solid var(--border);
   }
   .room:last-child { border-bottom: none; }
-  #roof::before { font-size: 0.5rem; }
-  #dialogue-text { font-size: 0.5rem; }
-  #user-input { font-size: 0.5rem; }
+  #roof::before { font-size: 0.6rem; }
+  #dialogue-text { font-size: 0.75rem; }
+  #user-input { font-size: 0.75rem; }
   .character { bottom: 32px; }
 }
 </style>
@@ -873,8 +878,8 @@ body {
 
   <!-- CLOSING INPUT PANEL -->
   <div id="closing-input-panel">
-    <div id="dialogue-speaker-closing" style="font-size:0.7rem;color:var(--teal);margin-bottom:8px;">SLEEP BRIAN:</div>
-    <div id="closing-dialogue-text" style="font-size:0.6rem;line-height:2;color:var(--text-green);min-height:20px;margin-bottom:12px;"></div>
+    <div id="dialogue-speaker-closing" style="font-size:1rem;color:var(--teal);margin-bottom:12px;">SLEEP BRIAN:</div>
+    <div id="closing-dialogue-text" style="font-size:0.85rem;line-height:2.2;color:var(--text-green);min-height:20px;margin-bottom:16px;"></div>
     <div class="closing-field">
       <label>THE ONE THING MORNING BRIAN MUST DO FIRST TOMORROW:</label>
       <textarea id="morning-task-input" rows="2" maxlength="500"></textarea>
