@@ -1086,6 +1086,27 @@ body {
     }, 2800);
   }
 
+  function patrolSleepBrian(callback) {
+    const char = chars.sleep;
+    const leftEdge = getRoomCenter('room-lounge') - 60;
+    const bedroomDoor = getRoomCenter('room-bedroom') - 20;
+
+    // Walk left across the lounge
+    char.classList.remove('idle');
+    char.classList.add('walking');
+    char.style.left = leftEdge + 'px';
+
+    setTimeout(() => {
+      // Walk right to bedroom door
+      char.style.left = bedroomDoor + 'px';
+      setTimeout(() => {
+        char.classList.remove('walking');
+        char.classList.add('idle');
+        if (callback) callback();
+      }, 2800);
+    }, 2800);
+  }
+
   // ===== DIALOGUE FLOW =====
   let busy = false;
 
@@ -1233,11 +1254,17 @@ body {
     saveState();
 
     closingInputPanel.classList.remove('active');
-    gameContainer.style.display = 'none';
 
-    // Move Sleep Brian to bedroom door animation
-    // Since we hide the game, we go straight to closing overlay
-    runClosingAnimation();
+    // Sleep Brian patrols to secure the perimeter before lights out
+    dialoguePanel.classList.add('active');
+    dialogueSpeaker.textContent = 'SLEEP BRIAN:';
+    typewrite(dialogueText, 'ALL SECTORS ACCOUNTED FOR. COMMENCING PERIMETER PATROL.', 30, () => {
+      patrolSleepBrian(() => {
+        dialoguePanel.classList.remove('active');
+        gameContainer.style.display = 'none';
+        runClosingAnimation();
+      });
+    });
   });
 
   function runClosingAnimation() {
@@ -1246,6 +1273,8 @@ body {
       "THE MEETING IS ADJOURNED.",
       "",
       "SLEEP BRIAN HAS THE CON.",
+      "",
+      "PERIMETER SECURED.",
       "",
       "SYSTEM IS POWERING DOWN."
     ];
